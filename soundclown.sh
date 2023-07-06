@@ -27,11 +27,13 @@ function parser() {
     fi
 
     if [ -z $filename ]; then
+	check_deps
         dl_tags $url
         echo "track name: $song_name"
         echo "artist: $artist_name"
         echo "album art url: $thumbnail_url"
     else
+	check_deps
         dl_audio $url $filename
         dl_tags $url
         curl $thumbnail_url -L | ffmpeg -i - /tmp/cover.png
@@ -57,6 +59,14 @@ function tag_file() {
     kid3-cli -c "set title '$song_name'" "$filename"
 }
 
+function check_deps() {
+    for i in $(echo curl ffmpeg awk sed kid3-cli yt-dlp); do
+        if [ -z $(which $i) ]; then
+            echo "dep not found: $i"
+            exit 1
+        fi
+    done
+}
 case $1 in
     -h|--help)
         version
